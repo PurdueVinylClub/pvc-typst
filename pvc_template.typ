@@ -44,9 +44,9 @@
   let self = utils.merge-dicts(
     self,
     config-page(
-      background: image("text_slide_bg.png", width: 100%, height: 100%),
+      background: image("text_slide_bg.png"),
       header: header,
-      margin: (top: text-header-height + 1em, left: 2.5em, right: 1.5em, bottom: 1.5em),
+      margin: (top: text-header-height + 1.5em, left: 2.5em, right: 1.5em, bottom: 1.5em),
       header-ascent: 1em,
     ),
   )
@@ -94,7 +94,7 @@
   let extra = args.pos().sum(default: none)
   let label(size, body) = box(
     fill: self.colors.neutral-lightest,
-    outset: (x: 0.1em, y: 0.15em),
+    outset: (x: 0.25em, y: 0.22em),
     text(size: size, fill: self.colors.primary, body),
   )
   // Title block centered on the tan bottom shape.
@@ -124,14 +124,14 @@
           width: 100% - title-dark-left,
           height: 100% - title-dark-bottom,
           align(center + horizon, {
-            set par(spacing: 0.8em)
-            label(2em, info.title)
+            set par(spacing: 1em)
+            label(2.4em, info.title)
             let date = if info.date != none { utils.display-info-date(self) }
             let byline = (info.author, date).filter(x => x != none)
             for line in (info.subtitle, byline.join[ · ]) {
               if line != none {
                 parbreak()
-                label(1em, line)
+                label(1.2em, line)
               }
             }
           }),
@@ -163,28 +163,36 @@
         set par(spacing: 1em)
         set underline(offset: 0.15em, stroke: 0.06em)
         set list(
-          marker: ([❖], [➢]),
+          marker: ([❖], [➢], [➢]),
           indent: 0em,
-          body-indent: 1.2em,
+          body-indent: 0.7em,
           spacing: 1.2em,
         )
         set enum(
           numbering: n => text(number-width: "tabular")[#n.],
           indent: 0em,
-          body-indent: 1.2em,
+          body-indent: 0.7em,
           spacing: 1.2em,
         )
         let lists = selector.or(list, enum)
         // Top-level items act as section headings
         show lists: it => {
           list-depth.update(d => d + 1)
-          context if list-depth.get() == 1 {
-            set text(size: 1.3em)
-            show lists: set text(size: 1em / 1.3)
-            set list(spacing: 0.9em)
-            set enum(spacing: 0.9em)
-            it
-          } else { it }
+          context {
+            let depth = list-depth.get()
+            if depth == 1 {
+              set text(size: 1.3em)
+              set list(spacing: 0.9em)
+              set enum(spacing: 0.9em)
+              it
+            } else if depth == 2 {
+              set text(size: 1em / 1.3)
+              it
+            } else if depth == 3 {
+              set text(size: 0.9em)
+              it
+            } else { it }
+          }
           list-depth.update(d => d - 1)
         }
         body
