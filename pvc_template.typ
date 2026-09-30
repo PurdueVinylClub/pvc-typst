@@ -73,6 +73,31 @@
   },
 )
 
+/// Full-maroon slide with a tan border and big centered bold tan text.
+///
+/// Example: `#emphasis-slide[Don't do this.]`
+#let emphasis-slide(config: (:), body) = touying-slide-wrapper(self => {
+  let border = context {
+    let w = 6 / 960 * page.width
+    place(top + left, dx: w / 2, dy: w / 2, rect(
+      width: 100% - w,
+      height: 100% - w,
+      stroke: w + tan,
+    ))
+  }
+  self = utils.merge-dicts(
+    self,
+    config-page(fill: self.colors.primary, background: border, margin: 2em),
+    config,
+  )
+  touying-slide(self: self, align(center + horizon, text(
+    size: 2.4em,
+    weight: "bold",
+    fill: tan,
+    body,
+  )))
+})
+
 #let list-depth = state("list-depth", 0)
 
 /// Title slide. An optional body (e.g. a photo)
