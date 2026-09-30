@@ -213,6 +213,7 @@
     \
     #heading(1, 22pt, underline[Next Week's Theme:])
 
+    #v(-1em)
     #align(heading(2, 30pt, style: "italic", fill: offtan, next-theme))
     #v(1fr)
 

@@ -1,9 +1,21 @@
-#import "pvc_template.typ": releases-slide, vinyl-theme
-#show: vinyl-theme.with(aspect-ratio: "16-9")
+#import "/pvc_template.typ": *
+#show: vinyl-theme.with(
+  config-info(
+    title: [Your Title],
+    date: [[Current Date]],
+  ),
+)
 
-== Slide Title
-Custom styled presentation content.
+#title-slide()
 
+== Example Slide Header
+Example text content.
+
+#pause
+
+More example text content on click.
+
+#emphasis-slide[Emphasis goes here.]
 
 #releases-slide(
   next-theme: [Themed Albums],
