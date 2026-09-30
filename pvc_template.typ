@@ -2,6 +2,7 @@
 
 #let maroon = rgb("#2D0A0E")
 #let tan = rgb("#DFB75F")
+#let offtan = rgb("#FABF33")
 #let orange = rgb("#E36E21")
 #let offwhite = rgb("#F5F0EA")
 
@@ -18,7 +19,7 @@
     top + left,
     dx: 217 / 960 * page.width - d / 2,
     dy: 246.5 / 540 * page.height - d / 2,
-    image("pvc_logo.png", width: d),
+    image("resources/pvc_logo.png", width: d),
   )
 }
 
@@ -44,7 +45,7 @@
   let self = utils.merge-dicts(
     self,
     config-page(
-      background: image("text_slide_bg.png"),
+      background: image("resources/text_slide_bg.png"),
       header: header,
       margin: (top: text-header-height + 1.5em, left: 2.5em, right: 1.5em, bottom: 1.5em),
       header-ascent: 1em,
@@ -110,7 +111,7 @@
     self,
     config-common(freeze-slide-counter: true),
     config-page(
-      background: image("title_slide_bg.png"),
+      background: image("resources/title_slide_bg.png"),
       margin: 0em,
     ),
     config,
@@ -164,6 +165,132 @@
       )
   )
   touying-slide(self: self, body)
+})
+
+/// Weekly new releases slide, albums with covers.
+///
+/// - `featured`: dictionaries with `artist`, `album`, `genres`, `cover`
+///   (content, e.g. `image("flash.jpg")`), and
+///   `border` (cover outline colour, default black).
+/// - `releases`: `(artist, album)` or `(artist, album, kind)` arrays,
+///   where `kind` is a tag like `"Single"` or `"EP"`.
+/// - `linktree`: `true` shows linktree QR code, `false` shows club logo.
+///
+/// Example:
+/// ```
+/// #releases-slide(
+///   next-theme: [Halloween Albums],
+///   featured: (
+///     (cover: image("flash.jpg"), artist: [Bird's Eye Thief], album: [Flash], genres: [IDM, Glitch]),
+///   ),
+///   releases: (("Tortoise", "Touch"), ("Oneohtrix Point Never", "Tra", "Single")),
+/// )
+/// ```
+#let releases-slide(
+  config: (:),
+  next-theme: none,
+  linktree: true,
+  featured: (),
+  releases: (),
+) = touying-slide-wrapper(self => {
+  self = utils.merge-dicts(
+    self,
+    config-page(background: image("resources/releases_slide_bg.png"), margin: 0em),
+    config,
+  )
+  // Laid out on a fixed 720×405pt canvas (the 960×540px background at 0.75pt/px)
+  // and scaled to the page, so it renders the same at any page size.
+  let px(n) = n * 0.75pt
+  // Stand-ins for headings with Typst's default per-level heading spacing;
+  // real headings would be picked up by touying as slide titles.
+  let heading(level, size, body, ..args) = {
+    let (above, below) = ((1.8em / 1.4, 0.75em / 1.4), (1.2em, 0.625em), (1.44em, 0.75em)).at(level - 1)
+    set text(size: size, weight: "bold", ..args)
+    block(above: above, below: below, sticky: true, body)
+  }
+
+  let panel = align(center)[
+    \
+    #heading(1, 22pt, underline[Next Week's Theme:])
+
+    #align(heading(2, 30pt, style: "italic", fill: offtan, next-theme))
+    #v(1fr)
+
+    #if linktree [
+      #heading(3, 19pt, underline[Linktree:])
+
+      #rect(stroke: px(5) + offtan, inset: 0%)[#image("resources/linktree_qr.png", width: 70%)]
+    ] else [
+      #image("resources/pvc_logo.png", width: 70%)
+    ]
+    \
+  ]
+
+  let placeholder = box(width: px(161), height: px(161), fill: white, align(center + horizon, text(
+    size: 10pt,
+    fill: black.transparentize(50%),
+  )[No Image]))
+  let features = grid(
+    columns: (px(161), px(19), px(191)),
+    rows: (1fr,) * featured.len(),
+    ..featured
+      .map(f => (
+        align(center + horizon, rect(
+          inset: 0%,
+          stroke: px(3) + f.at("border", default: black),
+          f.at("cover", default: placeholder),
+        )),
+        [],
+        align(left + horizon)[
+          #set text(font: "Lora", fill: black)
+          #text(size: 18pt)[*#f.artist*] \
+          #text(size: 14pt)[#underline(f.album)] \
+          #text(size: 10pt)[#emph(f.genres)]
+        ],
+      ))
+      .flatten(),
+  )
+
+  let release-list = {
+    set text(fill: black)
+    v(15pt)
+    align(center, heading(1, 22pt, underline[Weekly Releases]))
+    v(5pt)
+    set text(size: 10pt)
+    set list(
+      marker: [#h(10pt)#box(width: 10pt, align(center, move(dy: -1pt, scale(130%)[❖])))],
+      indent: 0pt,
+      body-indent: 0.5em,
+      spacing: auto,
+    )
+    let items = releases.map(((artist, album, ..kind)) => {
+      let tag = if kind.len() > 0 [(#kind.first())]
+      // Long titles push the tag onto its own line.
+      let long = type(album) == str and album.len() > 15
+      [*#underline[#artist:]* \ \"#album\" #if tag != none and long [\ ]#tag]
+    })
+    // Pushing list-depth past 3 opts out of the theme's per-depth list sizing.
+    list-depth.update(d => d + 3)
+    for item in items {
+      list(item)
+      v(1fr)
+    }
+    list-depth.update(d => d - 3)
+  }
+
+  touying-slide(self: self, context {
+    let k = calc.min(page.width / 720pt, page.height / 405pt)
+    scale(k * 100%, origin: top + left, reflow: true, block(width: 720pt, height: 405pt, {
+      set text(size: 11pt, font: ("Merriweather", "Zapf Dingbats"), fill: white)
+      set par(spacing: 1.2em, leading: 0.65em)
+      set underline(offset: auto, stroke: auto)
+      grid(
+        columns: (px(43), px(268), px(32), px(161 + 19 + 191), px(220), px(26)),
+        rows: auto,
+        [], panel, [], features, release-list, [],
+      )
+    }))
+  })
 })
 
 #let vinyl-theme(
