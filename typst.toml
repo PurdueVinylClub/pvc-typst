@@ -1,0 +1,7 @@
+[package]
+name = "pvc-template"
+version = "0.1.0"
+entrypoint = "pvc_template.typ"
+authors = ["Purdue Vinyl Club"]
+description = "Purdue Vinyl Club slides theme for Touying."
+exclude = ["gallery", ".github", "out"]
